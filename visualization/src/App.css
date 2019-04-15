@@ -1,0 +1,5 @@
+.App {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: min-content auto min-content;
+}

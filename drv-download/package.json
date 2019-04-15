@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "csv-stringify": "^5.3.0",
+    "puppeteer": "^1.14.0"
+  }
+}
