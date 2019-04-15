@@ -72,6 +72,38 @@ class ParseGeo {
     return result;
   }
 
+  static async geoPollingStationSinglePolyAndMarker(page) {
+    const data = await ParseGeo.base(page, 'gis$core.Gis_DistrPoly');
+    if (data === false) {
+      return false;
+    }
+    let geometryArea;
+    let geometryLocation;
+    for (const raw of data.features) {
+      if (!raw.geometry) {
+        continue;
+      }
+      const { geometry, geomtype } = raw;
+      const { type } = geometry;
+      if (!['Polygon', 'MultiPolygon', 'Point'].includes(type)) {
+        debugger;
+        continue;
+      }
+      if (type === 'Polygon' || type === 'MultiPolygon') {
+        geometryArea = geometry;
+        continue;
+      }
+      if (type === 'Point' && geomtype === '9') {
+        geometryLocation = geometry;
+        continue;
+      }
+    }
+    return {
+      geometryArea,
+      geometryLocation,
+    };
+  }
+
 }
 
 
