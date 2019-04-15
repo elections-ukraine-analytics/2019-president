@@ -1,0 +1,2 @@
+Header set Expires "Sun, 17-Jan-2038 19:14:07 GMT"
+AddOutputFilterByType DEFLATE application/json
