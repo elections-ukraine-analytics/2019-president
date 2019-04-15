@@ -21,8 +21,8 @@ class Visualizations extends Component {
 
   constructor(props) {
     super(props);
-    this.layerCVKAllActive = memoize(this.layerCVKAllActive);
-    this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
+    //this.layerCVKAllActive = memoize(this.layerCVKAllActive);
+    //this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
   }
 
   async componentDidMount() {
@@ -32,19 +32,19 @@ class Visualizations extends Component {
   }
 
   getDataLayers() {
-    const { geoActivePollingStations } = this.props;
+    const { geoPollingStationsLocations } = this.props;
     const { mode } = this.state;
 
-    if (mode === null || !geoActivePollingStations || geoActivePollingStations.length === 0) {
+    if (mode === null || geoPollingStationsLocations === null) {
       return [];
     }
 
     switch (mode) {
       case 'cvk---all-active':
-        return this.layerCVKAllActive(geoActivePollingStations);
+        return this.layerCVKAllActive(geoPollingStationsLocations);
       case 'e-vybory---has-photo':
         const { dataEVyboryProtocolsUploaded } = this.state;
-        return this.layerEVyboryHasPhoto(geoActivePollingStations, dataEVyboryProtocolsUploaded);
+        return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsUploaded);
       default:
         console.error('Unknown visualization mode - ' + mode);
         return [];
@@ -55,13 +55,16 @@ class Visualizations extends Component {
     this.setState({ mode });
   }
 
-  layerCVKAllActive(geoActivePollingStations) {
+  layerCVKAllActive(geoPollingStationsLocations) {
     const geoJson =  {
       type: "FeatureCollection",
-      features: geoActivePollingStations.map(ps => (
+      features: Object.keys(geoPollingStationsLocations).map(key => (
         {
           type: 'Feature',
-          geometry: ps.geometryLocation,
+          geometry: {
+            type: 'Point',
+            coordinates: geoPollingStationsLocations[key],
+          },
         }
       )),
     };
@@ -83,7 +86,7 @@ class Visualizations extends Component {
     return result;
   }
 
-  layerEVyboryHasPhoto(geoActivePollingStations, dataEVyboryProtocolsUploaded) {
+  layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsUploaded) {
     if (dataEVyboryProtocolsUploaded === null) {
       return [];
     }
@@ -94,10 +97,13 @@ class Visualizations extends Component {
       indexedUploads[key] = row;
     }
 
+    if (!geoPollingStationsLocations) {
+      debugger;
+    }
+
     const geoJson =  {
       type: "FeatureCollection",
-      features: geoActivePollingStations.map(ps => {
-        const key = ps.okrugNumber + ':' + ps.numberNormalized;
+      features: Object.keys(geoPollingStationsLocations).map(key => {
         let hasPhoto = false;
         let hasErrors = false;
         const evybory = indexedUploads[key]
@@ -106,7 +112,10 @@ class Visualizations extends Component {
         }
         return {
           type: 'Feature',
-          geometry: ps.geometryLocation,
+          geometry: {
+            type: 'Point',
+            coordinates: geoPollingStationsLocations[key],
+          },
           properties: {
             hasPhoto,
             hasErrors,

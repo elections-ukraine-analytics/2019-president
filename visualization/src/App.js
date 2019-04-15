@@ -1,63 +1,30 @@
 import React, { Component } from 'react';
 import Visualizations from './Visualizations';
-import memoize from 'memoize-one';
 import './App.css';
 
 class App extends Component {
   state = {
-    geoPollingStations: null,
-    cvkPollingStationsEntireList: null,
-  }
-
-  constructor(props) {
-    super(props);
-    this.getGeoActivePollingStations = memoize(this.getGeoActivePollingStations);
-  }
+    geoPollingStationsLocations: null,
+  };
 
   async componentDidMount() {
     await Promise.all([
       this.loadGeo(),
-      this.loadCVKPollingStations(),
     ]);
   }
 
   async loadGeo() {
-    const response = await fetch('./static-data/geo-polling-stations.json');
-    const geoPollingStations = await response.json();
-    this.setState({ geoPollingStations });
+    const response = await fetch('./static-data/geo-polling-stations-locations.json');
+    const geoPollingStationsLocations = await response.json();
+    this.setState({ geoPollingStationsLocations });
   }
-
-  async loadCVKPollingStations() {
-    const response = await fetch('./static-data/cvk-polling-stations-entire-list.json');
-    const cvkPollingStationsEntireList = await response.json();
-    this.setState({ cvkPollingStationsEntireList });
-  }
-
-  getGeoActivePollingStations(geoPollingStations, cvkPollingStationsEntireList) {
-    if (geoPollingStations === null || cvkPollingStationsEntireList === null) {
-      return [];
-    }
-
-    if (cvkPollingStationsEntireList === null) {
-      return [];
-    }
-
-    const indexedCVKPollingStationsEntireList = {};
-    for (const row of cvkPollingStationsEntireList.data) {
-      const key = row.join(':');
-      indexedCVKPollingStationsEntireList[key] = row;
-    }
-
-    return geoPollingStations.filter(ps => indexedCVKPollingStationsEntireList[ps.okrugNumber + ':' + ps.numberNormalized] !== undefined);
-  }  
 
   render() {
-    const { geoPollingStations, cvkPollingStationsEntireList } = this.state;
-    const geoActivePollingStations = this.getGeoActivePollingStations(geoPollingStations, cvkPollingStationsEntireList);
+    const { geoPollingStationsLocations } = this.state;
     return (
       <div className="App">
         <Visualizations 
-          geoActivePollingStations={geoActivePollingStations}
+          geoPollingStationsLocations={geoPollingStationsLocations}
         />
         <div className="small">
           Джерела інформації:
