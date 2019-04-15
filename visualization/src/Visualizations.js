@@ -21,8 +21,8 @@ class Visualizations extends Component {
 
   constructor(props) {
     super(props);
-    //this.layerCVKAllActive = memoize(this.layerCVKAllActive);
-    //this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
+    this.layerCVKAllActive = memoize(this.layerCVKAllActive);
+    this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
   }
 
   async componentDidMount() {
@@ -58,15 +58,16 @@ class Visualizations extends Component {
   layerCVKAllActive(geoPollingStationsLocations) {
     const geoJson =  {
       type: "FeatureCollection",
-      features: Object.keys(geoPollingStationsLocations).map(key => (
-        {
+      features: 
+        Object.keys(geoPollingStationsLocations)
+        .filter(key => geoPollingStationsLocations[key] !== null)
+        .map(key => ({
           type: 'Feature',
           geometry: {
             type: 'Point',
             coordinates: geoPollingStationsLocations[key],
           },
-        }
-      )),
+        })),
     };
 
     const result = [{
@@ -103,25 +104,28 @@ class Visualizations extends Component {
 
     const geoJson =  {
       type: "FeatureCollection",
-      features: Object.keys(geoPollingStationsLocations).map(key => {
-        let hasPhoto = false;
-        let hasErrors = false;
-        const evybory = indexedUploads[key]
-        if (evybory !== undefined) {
-          hasPhoto = evybory[2];
-        }
-        return {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: geoPollingStationsLocations[key],
-          },
-          properties: {
-            hasPhoto,
-            hasErrors,
+      features:
+        Object.keys(geoPollingStationsLocations)
+        .filter(key => geoPollingStationsLocations[key] !== null)
+        .map(key => {
+          let hasPhoto = false;
+          let hasErrors = false;
+          const evybory = indexedUploads[key]
+          if (evybory !== undefined) {
+            hasPhoto = evybory[2];
           }
-        }
-      }),
+          return {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: geoPollingStationsLocations[key],
+            },
+            properties: {
+              hasPhoto,
+              hasErrors,
+            }
+          }
+        }),
     };
 
     const result = [{
