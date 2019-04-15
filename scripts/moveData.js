@@ -34,15 +34,16 @@ const visualizationStaticDataBasePath = __dirname + '/../visualization/public/st
   await copyFile(cvkFilePathLast, visualizationDataBasePath + '/cvk.csv');
   await copyFile(evyboryFilePath, visualizationDataBasePath + '/e-vybory.json');
 
-  await geoCompactAndSplit(drvBasePath, visualizationStaticDataBasePath);
-
   const cvkEntireList = JSON.parse(await readFile(cvkFilePathEntireList));
   const cvkEntireListCompact = cvkCompact(cvkEntireList);
-  await writeFile(visualizationStaticDataBasePath + '/cvk-polling-stations-entire-list.json', JSON.stringify(cvkEntireListCompact));
+
+  await geoCompactAndSplit(drvBasePath, visualizationStaticDataBasePath, cvkEntireListCompact);
+
+  //await writeFile(visualizationStaticDataBasePath + '/cvk-polling-stations-entire-list.json', JSON.stringify(cvkEntireListCompact));
 
   const evybory = JSON.parse(await readFile(evyboryFilePath));
 
-  const protocols = protocolsIsUploaded(cvkEntireList, evybory);
+  const protocols = protocolsIsUploaded(cvkEntireListCompact, evybory);
   await writeFile(visualizationDataBasePath + '/protocols-is-uploaded.json', JSON.stringify(protocols));
 
 

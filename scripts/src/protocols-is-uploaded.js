@@ -35,29 +35,29 @@ const evyboryCompact = (raw) => {
 
 
 module.exports = (cvk, evybory) => {
-  const cvkProtocols = cvkCompact(cvk);
   const evyboryProtocols = evyboryCompact(evybory);
   console.log('e-Vybory Repeated', repeated);
   let counter = 0;
 
-  const status = cvkProtocols.data.map(code => {
-    const key = code.join(':');
+  const cvkKeys = Object.keys(cvk.data);
+
+  const status = cvkKeys.map(key => {
     let uploaded = false;
     if (evyboryProtocols.data[key] !== undefined) {
       uploaded = true;
       counter++;
     }
     return [
-      ...code,
+      ...cvk.data[key],
       uploaded,
     ]
   });
 
-  console.log(counter, 'of', cvkProtocols.data.length);
+  console.log(counter, 'of', cvkKeys.length);
 
   return {
     _sources: [
-      cvkProtocols._source,
+      cvk._source,
       evyboryProtocols._source,
     ],
     status

@@ -4,7 +4,8 @@ const copyFile = promisify(fs.copyFile);
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
-module.exports = async (drvBasePath, outputBasePath) => {
+module.exports = async (drvBasePath, outputBasePath, cvk) => {
+  let skipped = 0;
   const inputPS = JSON.parse(await readFile(drvBasePath + '/all-polling-stations.json'));
   const inputOkrugs = JSON.parse(await readFile(drvBasePath + '/all.json'));
 
@@ -37,6 +38,10 @@ module.exports = async (drvBasePath, outputBasePath) => {
     }
 
     const key = row.okrugNumber + ':' + row.numberNormalized;
+    if (!cvk.data[key]) {
+      skipped++;
+      continue;
+    }
     geoLocationsOnly[key] = !row.geometryLocation ? null : row.geometryLocation.coordinates;
     geoAreasOnly[key] = !row.geometryArea ? null : [row.geometryArea.type, row.geometryArea.coordinates];
     geoSpecialOnly[key] = row.isSpecial;
@@ -53,6 +58,8 @@ module.exports = async (drvBasePath, outputBasePath) => {
       geoOtherData[key][field] = row[field];
     }
   }
+
+  console.log('Geo skipped', skipped);
 
   await writeFile(outputBasePath + '/geo-polling-stations-locations.json', JSON.stringify(geoLocationsOnly));
   await writeFile(outputBasePath + '/geo-polling-stations-areas.json', JSON.stringify(geoAreasOnly));
