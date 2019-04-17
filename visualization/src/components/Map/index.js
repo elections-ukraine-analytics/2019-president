@@ -97,7 +97,7 @@ class Map extends Component {
       <div className="map-container">
         <div className="map" ref={this.mapRef}></div>
         {(renderingLayer === true || dataLayers === undefined || dataLayers === null || dataLayers.length === 0) &&
-          <div className="loading-map"><span>Загрузка даних ...</span></div>
+          <div className="loading-map"><span>Завантаження даних ...</span></div>
         }
       </div>
     );
