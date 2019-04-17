@@ -6,7 +6,7 @@ import './index.css';
 const mapboxgl = window.mapboxgl;
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2FzaGFrIiwiYSI6ImNqdWU4cTY0MTAweTYzeW1qNWIydHE1MHAifQ.kz7SzbNlU6z-IfqXZ0Kxbw';
 
-const boundsUkraine = [[22.0856083513, 44.3614785833], [40.0807890155, 52.3350745713]];
+const boundsUkraine = [[21.08, 43.86], [41.08, 52.81]];
 
 class Map extends Component {
   state = {
