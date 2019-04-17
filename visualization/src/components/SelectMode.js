@@ -32,16 +32,14 @@ class SelectMode extends PureComponent {
   render() {
     const { mode } = this.state;
     return (
-      <div className="p-3">
-        <div className="form-group row">
-          <label htmlFor="visualization-mode" className="col-form-label col-auto">Оберiть</label>
-          <div className="col">
-            <select value={mode} onChange={this.onChange} id="visualization-mode" className="form-control">
-              {options.map(r => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-          </div>
+      <div className="form-group row">
+        <label htmlFor="visualization-mode" className="col-form-label col-auto">Звiт</label>
+        <div className="col">
+          <select value={mode} onChange={this.onChange} id="visualization-mode" className="form-control">
+            {options.map(r => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
         </div>
       </div>
     );

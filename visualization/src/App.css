@@ -1,5 +1,9 @@
 .App {
   display: grid;
   height: 100vh;
-  grid-template-rows: min-content auto min-content;
+  grid-template-rows: min-content auto;
+}
+
+.layout--title {
+  border-bottom: 1px solid grey;
 }

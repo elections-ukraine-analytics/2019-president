@@ -1,0 +1,25 @@
+.layout--visualization {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.layout--control {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  border-top: 1px solid grey;
+  display: grid;
+  grid-template-rows: auto min-content;
+}
+
+@media (min-width: 1600px) {
+  .layout--visualization {
+    grid-template-rows: auto;
+    grid-template-columns: auto fit-content(33%);
+  }
+
+  .layout--control {
+    border-left: 1px solid grey;
+    border-top: none;
+    max-width: 600px;
+  }
+}
