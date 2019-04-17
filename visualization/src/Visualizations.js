@@ -5,7 +5,7 @@ import SelectMode from './components/SelectMode';
 
 const circleRadius = {
   base: 1.75,
-  stops: [[8, 2], [22, 180]],
+  stops: [[5, 4], [22, 180]],
 };
 const circleOpacity = {
   base: 0.4,
