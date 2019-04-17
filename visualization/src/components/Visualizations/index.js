@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import memoize from 'memoize-one';
 import Map from '../Map';
 import SelectMode from '../SelectMode';
+import Details from '../Details';
 import './index.css';
 
 const circleRadius = {
@@ -18,6 +19,9 @@ class Visualizations extends Component {
   state = {
     dataEVyboryProtocolsUploaded: null,
     mode: null,
+    dataLoaded: false,
+    allowDetailsLoading: false,
+    stationKey: undefined,
   }
 
   constructor(props) {
@@ -29,7 +33,21 @@ class Visualizations extends Component {
   async componentDidMount() {
     const response = await fetch('./data/protocols-is-uploaded.json');
     const dataEVyboryProtocolsUploaded = await response.json();
-    this.setState({ dataEVyboryProtocolsUploaded });
+    this.setState({ dataEVyboryProtocolsUploaded, dataLoaded: true }, this.testAllowDetailsLoading);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.geoPollingStationsLocations === null && this.props.geoPollingStationsLocations !== null) {
+      this.testAllowDetailsLoading();
+    }
+  }
+
+  testAllowDetailsLoading() {
+    if (this.props.geoPollingStationsLocations === null || this.state.dataLoaded === false) {
+      return;
+    }
+
+    this.setState({ allowDetailsLoading: true });
   }
 
   getDataLayers() {
@@ -68,6 +86,9 @@ class Visualizations extends Component {
             type: 'Point',
             coordinates: geoPollingStationsLocations[key],
           },
+          properties: {
+            stationKey: key,
+          }
         })),
     };
 
@@ -124,6 +145,7 @@ class Visualizations extends Component {
             properties: {
               hasPhoto,
               hasErrors,
+              stationKey: key,
             }
           }
         }),
@@ -150,14 +172,21 @@ class Visualizations extends Component {
     return result;
   }
 
+  onMapClick = (data) => {
+    const { stationKey } = data;
+    this.setState({ stationKey });
+  };
+
   render() {
+    const { allowDetailsLoading, stationKey } = this.state;
     const dataLayers = this.getDataLayers();
     return (
       <div className="layout--visualization">
-        <Map dataLayers={dataLayers} />
+        <Map dataLayers={dataLayers} onClick={this.onMapClick} />
         <div className="layout--control p-2">
           <div className="mb-2">
             <SelectMode onChange={this.onChangeMode} />
+            <Details stationKey={stationKey} allowDetailsLoading={allowDetailsLoading} />
           </div>
           <div className="small">
             Джерела інформації:

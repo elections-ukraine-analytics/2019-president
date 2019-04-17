@@ -87,7 +87,33 @@ class Map extends Component {
         this.setState({ renderingLayer: false });
       });
       this.map.addLayer(dataLayer, this.mapFirstSymbolId);
+
+      this.map.on('mouseenter', dataLayer.id, this.onMouseEnter);
+      this.map.on('mouseleave', dataLayer.id, this.onMouseLeave);
+      this.map.on('click', dataLayer.id, this.onClick);
     }
+  }
+
+  onMouseEnter = () => {
+    this.map.getCanvas().style.cursor = 'pointer';
+  }
+
+  onMouseLeave = () => {
+    this.map.getCanvas().style.cursor = '';
+  }
+
+  onClick = (e) => {
+    const { onClick, dataLayers } = this.props;
+    const features = this.map.queryRenderedFeatures(e.point, { layers: dataLayers.map(r => r.id) });
+    if (features.length === 0) {
+      return;
+    }
+    
+    const { properties } = features[0];
+    if (onClick) {
+      onClick(properties);
+    }
+    
   }
 
   render() {
