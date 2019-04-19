@@ -40,15 +40,23 @@ const transformRowToObject = (row, headers) => {
   const withErrorsProtocols = await readFromCSV(__dirname + '/data/protocols_witherrors.csv');
 
   const result = [];
+  let lastUpdateDate = null;
   for (const collection of [okProtocols, withErrorsProtocols]) {
     const headers = collection[0];
     for (let i = 1; i < collection.length; i++) {
-      result.push(transformRowToObject(collection[i], headers));
+      const row = transformRowToObject(collection[i], headers);
+      for (const key of ['photo_date', 'table_date']) {
+        if (lastUpdateDate === null || (row[key] && row[key] > lastUpdateDate)) {
+          lastUpdateDate = row[key];
+        }
+      }
+      result.push(row);
     }
   }
 
   await writeFile(__dirname + '/data/all.json', JSON.stringify({
     _source: {
+      lastUpdateDate,
       link: 'https://e-vybory.org/export/',
       copyright: 'ГО «Електронна демократія»',
     },
