@@ -45,7 +45,7 @@ const transformRowToObject = (row, headers) => {
     const headers = collection[0];
     for (let i = 1; i < collection.length; i++) {
       const row = transformRowToObject(collection[i], headers);
-      for (const key of ['photo_date', 'table_date']) {
+      for (const key of [/*'photo_date',*/ 'table_date']) {
         if (lastUpdateDate === null || (row[key] && row[key] > lastUpdateDate)) {
           lastUpdateDate = row[key];
         }
