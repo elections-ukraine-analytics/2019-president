@@ -18,6 +18,7 @@ const circleOpacity = {
 class Visualizations extends Component {
   state = {
     dataEVyboryProtocolsUploaded: null,
+    dataEVyboryProtocolsCompact: null,
     mode: null,
     dataLoaded: false,
     allowDetailsLoading: false,
@@ -31,9 +32,28 @@ class Visualizations extends Component {
   }
 
   async componentDidMount() {
+    await Promise.all([
+      this.loadProtocolsCompactStep1(),
+      //this.loadProtocolsUploadingStep1(),
+    ]);
+  }
+
+  async loadProtocolsUploadingStep1() {
     const response = await fetch('./data/protocols-is-uploaded.json');
     const dataEVyboryProtocolsUploaded = await response.json();
-    this.setState({ dataEVyboryProtocolsUploaded, dataLoaded: true }, this.testAllowDetailsLoading);
+    this.setState({ dataEVyboryProtocolsUploaded }, this.testAllowDetailsLoading);
+  }
+
+  async loadProtocolsCompactStep1() {
+    const response = await fetch('./data/evybory-protocols-compact.json');
+    const raw = await response.json();
+    const dataEVyboryProtocolsCompact = {
+      _source: raw._source,
+      data: Object.keys(raw.data).map(key => raw.data[key].map(
+        ([area_code, ps_code, has_errors, photo_slug, table_slug, rZ, rP, rSum]) => ({area_code, ps_code, has_errors, photo_slug, table_slug, rZ, rP, rSum})
+      )),
+    };
+    this.setState({ dataEVyboryProtocolsCompact }, this.testAllowDetailsLoading);
   }
 
   componentDidUpdate(prevProps) {
@@ -43,7 +63,11 @@ class Visualizations extends Component {
   }
 
   testAllowDetailsLoading() {
-    if (this.props.geoPollingStationsLocations === null || this.state.dataLoaded === false) {
+    const dataLoaded = this.state.dataEVyboryProtocolsCompact !== null; // && this.state.dataEVyboryProtocolsUploaded !== null;
+    if (dataLoaded !== this.state.dataLoaded) {
+      this.setState({ dataLoaded });
+    }
+    if (this.props.geoPollingStationsLocations === null || dataLoaded === false) {
       return;
     }
 
@@ -61,9 +85,9 @@ class Visualizations extends Component {
     switch (mode) {
       case 'cvk---all-active':
         return this.layerCVKAllActive(geoPollingStationsLocations);
-      case 'e-vybory---has-photo---step-1':
-        const { dataEVyboryProtocolsUploaded } = this.state;
-        return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsUploaded);
+      case 'e-vybory---has-data---step-1':
+        const { dataEVyboryProtocolsCompact } = this.state;
+        return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
       default:
         console.error('Unknown visualization mode - ' + mode);
         return [];
@@ -109,15 +133,9 @@ class Visualizations extends Component {
     return result;
   }
 
-  layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsUploaded) {
-    if (dataEVyboryProtocolsUploaded === null) {
+  layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsCompact) {
+    if (dataEVyboryProtocolsCompact === null) {
       return [];
-    }
-
-    const indexedUploads = {};
-    for (const row of dataEVyboryProtocolsUploaded.status) {
-      const key = [row[0], row[1]].join(':');
-      indexedUploads[key] = row;
     }
 
     if (!geoPollingStationsLocations) {
@@ -132,9 +150,9 @@ class Visualizations extends Component {
         .map(key => {
           let hasPhoto = false;
           let hasErrors = false;
-          const evybory = indexedUploads[key]
+          const evybory = dataEVyboryProtocolsCompact[key]
           if (evybory !== undefined) {
-            hasPhoto = evybory[2];
+            hasPhoto = true;
           }
           return {
             type: 'Feature',
@@ -178,7 +196,7 @@ class Visualizations extends Component {
   };
 
   render() {
-    const { allowDetailsLoading, stationKey } = this.state;
+    const { allowDetailsLoading, stationKey, mode, dataEVyboryProtocolsCompact } = this.state;
     const dataLayers = this.getDataLayers();
     return (
       <div className="layout--visualization">
@@ -186,7 +204,7 @@ class Visualizations extends Component {
         <div className="layout--control p-2">
           <div className="mb-2">
             <SelectMode onChange={this.onChangeMode} />
-            <Details stationKey={stationKey} allowDetailsLoading={allowDetailsLoading} />
+            <Details stationKey={stationKey} mode={mode} dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact} allowDetailsLoading={allowDetailsLoading} />
           </div>
           <div className="small">
             Джерела інформації:

@@ -2,10 +2,10 @@ import React, { PureComponent } from 'react';
 
 export const options = [
   {value: 'cvk---all-active', label: 'ЦВК: Усi дiльницi'},
-  {value: 'e-vybory---has-photo---step-1', label: 'e-Vybory.org: Наявність фотокопій протоколів (1 тур - 31.03.2019)'},
+  {value: 'e-vybory---has-data---step-1', label: 'e-Vybory.org: Наявність оцифрованих протоколів (1 тур - 31.03.2019)'},
 ];
 
-const defaultMode = 'e-vybory---has-photo---step-1';
+const defaultMode = 'e-vybory---has-data---step-1';
 
 class SelectMode extends PureComponent {
   state = {
