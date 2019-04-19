@@ -61,7 +61,7 @@ class Visualizations extends Component {
     switch (mode) {
       case 'cvk---all-active':
         return this.layerCVKAllActive(geoPollingStationsLocations);
-      case 'e-vybory---has-photo':
+      case 'e-vybory---has-photo---step-1':
         const { dataEVyboryProtocolsUploaded } = this.state;
         return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsUploaded);
       default:

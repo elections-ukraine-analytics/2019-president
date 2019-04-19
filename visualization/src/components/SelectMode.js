@@ -2,10 +2,10 @@ import React, { PureComponent } from 'react';
 
 export const options = [
   {value: 'cvk---all-active', label: 'ЦВК: Усi дiльницi'},
-  {value: 'e-vybory---has-photo', label: 'e-Vybory.org: Наявність фотокопій протоколів'},
+  {value: 'e-vybory---has-photo---step-1', label: 'e-Vybory.org: Наявність фотокопій протоколів (1 тур - 31.03.2019)'},
 ];
 
-const defaultMode = 'e-vybory---has-photo';
+const defaultMode = 'e-vybory---has-photo---step-1';
 
 class SelectMode extends PureComponent {
   state = {
@@ -31,11 +31,12 @@ class SelectMode extends PureComponent {
 
   render() {
     const { mode } = this.state;
+    const title = mode && options.find(({ value }) => value === mode)['label'];
     return (
       <div className="form-group row">
         <label htmlFor="visualization-mode" className="col-form-label col-auto">Звiт</label>
         <div className="col">
-          <select value={mode} onChange={this.onChange} id="visualization-mode" className="form-control">
+          <select value={mode} onChange={this.onChange} id="visualization-mode" className="form-control" title={title}>
             {options.map(r => (
               <option key={r.value} value={r.value}>{r.label}</option>
             ))}
