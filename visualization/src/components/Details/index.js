@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 class Details extends Component {
   state = {
@@ -52,17 +52,17 @@ class Details extends Component {
               <>
                 <h3>Iнформація з сайту e-Vybory.org:</h3>
                 {dataEVyboryProtocolsCompact.data[stationKey].map((row, index) => (
-                  <>
-                    {dataEVyboryProtocolsCompact.data[stationKey].length > 0 &&
-                      <div className="small">Запис {index} з {dataEVyboryProtocolsCompact.data[stationKey].length}</div>
+                  <Fragment key={row.photo_slug + row.table_slug + row.photo_date + row.table_date}>
+                    {dataEVyboryProtocolsCompact.data[stationKey].length > 1 &&
+                      <div className="small">Запис {index + 1} з {dataEVyboryProtocolsCompact.data[stationKey].length}</div>
                     }
                     <div><strong>Арифметичнi помилки у заповненi протоколу: </strong> {row.has_errors === '1' ? 'Так' : 'Нi'}</div>
                     <div><strong>Дата протоколу:</strong> {row.photo_date.replace('T', ' ')}</div>
                     <div><strong>Дата оцифровки:</strong> {row.table_date.replace('T', ' ')}</div>
                     <div><strong>Сума голосiв за усiх кандидатiв: </strong> {row.rSum}</div>
-                    <div><strong>Зеленський:</strong> {row.rZ} ({Math.trunc(row.rZ / row.rSum * 10000) / 100})</div>
-                    <div><strong>Порошенко:</strong> {row.rP} ({Math.trunc(row.rP / row.rSum * 10000) / 100})</div>
-                  </>
+                    <div><strong>Зеленський:</strong> {row.rZ} ({row.rppZ / 100}%)</div>
+                    <div><strong>Порошенко:</strong> {row.rP} ({row.rppP / 100}%)</div>
+                  </Fragment>
                 ))}
               </>
             }

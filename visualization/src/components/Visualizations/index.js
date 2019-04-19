@@ -47,11 +47,16 @@ class Visualizations extends Component {
   async loadProtocolsCompactStep1() {
     const response = await fetch('./data/evybory-protocols-compact.json');
     const raw = await response.json();
+    let data = {};
+    for (const key of Object.keys(raw.data)) {
+      data[key] = raw.data[key].map(
+        ([area_code, ps_code, has_errors, photo_slug, table_slug, photo_date, table_date, rZ, rP, rSum, rppZ, rppP]) => 
+        ({area_code, ps_code, has_errors, photo_slug, table_slug, photo_date, table_date, rZ, rP, rSum, rppZ, rppP})
+      );
+    }
     const dataEVyboryProtocolsCompact = {
       _source: raw._source,
-      data: Object.keys(raw.data).map(key => raw.data[key].map(
-        ([area_code, ps_code, has_errors, photo_slug, table_slug, rZ, rP, rSum]) => ({area_code, ps_code, has_errors, photo_slug, table_slug, rZ, rP, rSum})
-      )),
+      data,
     };
     this.setState({ dataEVyboryProtocolsCompact }, this.testAllowDetailsLoading);
   }
@@ -150,7 +155,7 @@ class Visualizations extends Component {
         .map(key => {
           let hasPhoto = false;
           let hasErrors = false;
-          const evybory = dataEVyboryProtocolsCompact[key]
+          const evybory = dataEVyboryProtocolsCompact.data[key];
           if (evybory !== undefined) {
             hasPhoto = true;
           }
