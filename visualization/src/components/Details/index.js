@@ -38,8 +38,13 @@ class Details extends Component {
         }
         { stationKey && data &&
           <>
-            <div>Округ: {data.okrugNumber}</div>
-            <div>Дiльниця: {data.number}</div>
+            <div><strong>Округ:</strong> {data.okrugNumber}</div>
+            <div><strong>Дiльниця:</strong> {data.number}</div>
+            <div><strong>Розмір дільниці:</strong> {data.size}</div>
+            <div><strong>Опис меж дільниці:</strong></div>
+            <div>{data.areaDescriptionOrTitle}</div>
+            <div><strong>Адреса приміщення для голосування (місцезнаходження) / Адреса дільничної виборчої комісії:</strong></div>
+            <div>{data.location}</div>
           </>
         }
       </div>
