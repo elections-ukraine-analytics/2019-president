@@ -206,25 +206,27 @@ class Visualizations extends Component {
     return (
       <div className="layout--visualization">
         <Map dataLayers={dataLayers} onClick={this.onMapClick} />
-        <div className="layout--control p-2">
-          <div className="mb-2">
-            <SelectMode onChange={this.onChangeMode} />
-            <Details stationKey={stationKey} mode={mode} dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact} allowDetailsLoading={allowDetailsLoading} />
-          </div>
-          <div className="small">
-            Джерела інформації:
-            {' '}
-            <a href="https://e-vybory.org/export/" rel="noopener noreferrer" target="_blank">ГО «Електронна демократія»</a>
-            {' | '}
-            <a href="https://cvk.gov.ua/pls/vp2019/wp001.html" rel="noopener noreferrer" target="_blank">ЦВК - WWW ІАС "Вибори Президента України"</a>
-            {' | '}
-            <a href="https://www.drv.gov.ua/ords/portal/!cm_core.cm_index?option=ext_dvk&amp;prejim=3" rel="noopener noreferrer" target="_blank">Державний реєстр виборців</a>
-            {' '}
-            Розробник:
-            {' '}
-            <a href="https://github.com/elections-ukraine-analytics/2019-president" rel="noopener noreferrer" target="_blank">GitHub</a>
-            {', '}
-            <a href="mailto:e.control.2019.ak@gmail.com">e.control.2019.ak@gmail.com</a>
+        <div className="layout--control">
+          <div className="details-pane p-2">
+            <div className="mb-5">
+              <SelectMode onChange={this.onChangeMode} />
+              <Details stationKey={stationKey} mode={mode} dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact} allowDetailsLoading={allowDetailsLoading} />
+            </div>
+            <div className="small">
+              Джерела інформації:
+              {' '}
+              <a href="https://e-vybory.org/export/" rel="noopener noreferrer" target="_blank">ГО «Електронна демократія»</a>
+              {' | '}
+              <a href="https://cvk.gov.ua/pls/vp2019/wp001.html" rel="noopener noreferrer" target="_blank">ЦВК - WWW ІАС "Вибори Президента України"</a>
+              {' | '}
+              <a href="https://www.drv.gov.ua/ords/portal/!cm_core.cm_index?option=ext_dvk&amp;prejim=3" rel="noopener noreferrer" target="_blank">Державний реєстр виборців</a>
+              {' '}
+              Розробник:
+              {' '}
+              <a href="https://github.com/elections-ukraine-analytics/2019-president" rel="noopener noreferrer" target="_blank">GitHub</a>
+              {', '}
+              <a href="mailto:e.control.2019.ak@gmail.com">e.control.2019.ak@gmail.com</a>
+            </div>
           </div>
         </div>
       </div>

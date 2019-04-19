@@ -4,9 +4,18 @@
 }
 
 .layout--control {
+  position: relative;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   border-top: 1px solid grey;
+}
+
+.details-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: grid;
   grid-template-rows: auto min-content;
 }
@@ -14,12 +23,11 @@
 @media (min-width: 1600px) {
   .layout--visualization {
     grid-template-rows: auto;
-    grid-template-columns: auto fit-content(33%);
+    grid-template-columns: auto 600px;
   }
 
   .layout--control {
     border-left: 1px solid grey;
     border-top: none;
-    max-width: 600px;
   }
 }
