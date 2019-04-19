@@ -29,6 +29,7 @@ class Visualizations extends Component {
     super(props);
     this.layerCVKAllActive = memoize(this.layerCVKAllActive);
     this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
+    this.layerEVyboryTop2 = memoize(this.layerEVyboryTop2);
   }
 
   async componentDidMount() {
@@ -87,12 +88,17 @@ class Visualizations extends Component {
       return [];
     }
 
+    const { dataEVyboryProtocolsCompact } = this.state;
+
     switch (mode) {
       case 'cvk---all-active':
         return this.layerCVKAllActive(geoPollingStationsLocations);
       case 'e-vybory---has-data---step-1':
-        const { dataEVyboryProtocolsCompact } = this.state;
         return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
+      case 'e-vybory---top-2---step-1':
+        return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
+      case 'e-vybory---top-2-errors---step-1':
+        return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, true);
       default:
         console.error('Unknown visualization mode - ' + mode);
         return [];
@@ -188,6 +194,78 @@ class Visualizations extends Component {
         'circle-color': [
           'case', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
           ['get', 'hasPhoto'], '#fbb03b', // if has photo
+          'grey' // default
+        ],
+      },
+    }];
+    return result;
+  }
+
+  layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, withErrors = false) {
+    if (dataEVyboryProtocolsCompact === null) {
+      return [];
+    }
+
+    if (!geoPollingStationsLocations) {
+      debugger;
+    }
+
+    const geoJson =  {
+      type: "FeatureCollection",
+      features:
+        Object.keys(geoPollingStationsLocations)
+        .filter(key => geoPollingStationsLocations[key] !== null)
+        .filter(key => dataEVyboryProtocolsCompact.data[key])
+        .map(key => {
+          let hasErrors = false;
+          if (withErrors && dataEVyboryProtocolsCompact.data[key].some(row => row.has_errors == false)) {
+            // do not display with errors if we have table data without errors
+            return false;
+          }
+          let collection = dataEVyboryProtocolsCompact.data[key].filter(row => row.has_errors == withErrors);
+          let evybory;
+          if (collection.length === 0) {
+            return false;
+          } else if (collection.length === 1) {
+            evybory = collection[0];
+          } else {
+            // if several records - use recent (by table_date)
+            collection.sort((a, b) => b.table_date - a.table_date);
+            evybory = collection[0];
+          }
+
+          return {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: geoPollingStationsLocations[key],
+            },
+            properties: {
+              winner: evybory.rZ === evybory.rP ? '=' : (evybory.rppZ > evybory.rppP ? 'З' : 'П'),
+              hasErrors,
+              stationKey: key,
+            }
+          }
+        }),
+    };
+
+    const result = [{
+      id: 'data-circle',
+      type: 'circle',
+      source: {
+        type: 'geojson',
+        data: geoJson,
+      },
+      layout: {},
+      paint: {
+        'circle-radius': circleRadius,
+        'circle-opacity': circleOpacity,
+        'circle-color': [
+          'match', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+          ['get', 'winner'],
+          '=', '#fbb03b', // equal
+          'З', '#00b259',
+          'П', '#7f1561',
           'grey' // default
         ],
       },
