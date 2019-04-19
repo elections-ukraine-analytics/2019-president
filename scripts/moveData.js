@@ -6,6 +6,7 @@ const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
 
 const protocolsIsUploaded = require('./src/protocols-is-uploaded');
+const evyboryProtocolsCompact = require('./src/evybory-protocols-compact');
 const cvkCompact = require('./src/cvkCompact');
 const geoCompactAndSplit = require('./src/geoCompactAndSplit');
 
@@ -46,5 +47,6 @@ const visualizationStaticDataBasePath = __dirname + '/../visualization/public/st
   const protocols = protocolsIsUploaded(cvkEntireListCompact, evybory);
   await writeFile(visualizationDataBasePath + '/protocols-is-uploaded.json', JSON.stringify(protocols));
 
+  await writeFile(visualizationDataBasePath + '/evybory-protocols-compact.json', JSON.stringify(evyboryProtocolsCompact(evybory)));
 
 })();
