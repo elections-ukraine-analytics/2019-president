@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import memoize from 'memoize-one';
 import Map from '../Map';
 import SelectMode from '../SelectMode';
+import SelectModeColors from '../SelectModeColors';
 import Details from '../Details';
 import './index.css';
 
@@ -20,6 +21,7 @@ class Visualizations extends Component {
     dataEVyboryProtocolsUploaded: null,
     dataEVyboryProtocolsCompact: null,
     mode: null,
+    modeColor: null,
     dataLoaded: false,
     allowDetailsLoading: false,
     stationKey: undefined,
@@ -82,7 +84,7 @@ class Visualizations extends Component {
 
   getDataLayers() {
     const { geoPollingStationsLocations } = this.props;
-    const { mode } = this.state;
+    const { mode, modeColor } = this.state;
 
     if (mode === null || geoPollingStationsLocations === null) {
       return [];
@@ -96,9 +98,9 @@ class Visualizations extends Component {
       case 'e-vybory---has-data---step-1':
         return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
       case 'e-vybory---top-2---step-1':
-        return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
+        return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, false, modeColor);
       case 'e-vybory---top-2-errors---step-1':
-        return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, true);
+        return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, true, modeColor);
       default:
         console.error('Unknown visualization mode - ' + mode);
         return [];
@@ -107,7 +109,11 @@ class Visualizations extends Component {
 
   onChangeMode = (mode) => {
     this.setState({ mode });
-  }
+  };
+
+  onChangeModeColor = (modeColor) => {
+    this.setState({ modeColor });
+  };
 
   layerCVKAllActive(geoPollingStationsLocations) {
     const geoJson =  {
@@ -201,7 +207,13 @@ class Visualizations extends Component {
     return result;
   }
 
-  layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, withErrors = false) {
+  layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, withErrors, modeColor) {
+    const numberWithErrors = withErrors ? '1' : '0';
+
+    if (modeColor === null) {
+      return [];
+    }
+    
     if (dataEVyboryProtocolsCompact === null) {
       return [];
     }
@@ -218,11 +230,11 @@ class Visualizations extends Component {
         .filter(key => dataEVyboryProtocolsCompact.data[key])
         .map(key => {
           let hasErrors = false;
-          if (withErrors && dataEVyboryProtocolsCompact.data[key].some(row => row.has_errors == false)) {
+          if (withErrors && dataEVyboryProtocolsCompact.data[key].some(row => row.has_errors === '0')) {
             // do not display with errors if we have table data without errors
             return false;
           }
-          let collection = dataEVyboryProtocolsCompact.data[key].filter(row => row.has_errors == withErrors);
+          let collection = dataEVyboryProtocolsCompact.data[key].filter(row => row.has_errors === numberWithErrors);
           let evybory;
           if (collection.length === 0) {
             return false;
@@ -242,12 +254,34 @@ class Visualizations extends Component {
             },
             properties: {
               winner: evybory.rZ === evybory.rP ? '=' : (evybory.rppZ > evybory.rppP ? 'З' : 'П'),
+              winnerInterpolate: evybory.rppZ - evybory.rppP,
               hasErrors,
               stationKey: key,
             }
           }
         }),
     };
+
+    let circleColor;
+
+    if (modeColor === '2-colors') {
+      circleColor = [
+        'match', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+        ['get', 'winner'],
+        '=', '#fbb03b', // equal
+        'З', '#00b259',
+        'П', '#7f1561',
+        'grey' // default
+      ];
+    } else if (modeColor === 'interpolate') {
+      circleColor = [
+        'interpolate', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-interpolate
+        ['linear'],
+        ['get', 'winnerInterpolate'],
+        -10000, '#7f1561',
+        +10000, '#00b259',
+      ];
+    }
 
     const result = [{
       id: 'data-circle',
@@ -260,14 +294,7 @@ class Visualizations extends Component {
       paint: {
         'circle-radius': circleRadius,
         'circle-opacity': circleOpacity,
-        'circle-color': [
-          'match', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
-          ['get', 'winner'],
-          '=', '#fbb03b', // equal
-          'З', '#00b259',
-          'П', '#7f1561',
-          'grey' // default
-        ],
+        'circle-color': circleColor,
       },
     }];
     return result;
@@ -288,6 +315,9 @@ class Visualizations extends Component {
           <div className="details-pane p-2">
             <div className="mb-5">
               <SelectMode onChange={this.onChangeMode} />
+              {mode && mode.includes('---top-2-') &&
+                <SelectModeColors onChange={this.onChangeModeColor} />
+              }
               <Details stationKey={stationKey} mode={mode} dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact} allowDetailsLoading={allowDetailsLoading} />
             </div>
             <div className="small">
