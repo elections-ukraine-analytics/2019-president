@@ -15,6 +15,11 @@ const circleOpacity = {
   stops: [[6, 0.4], [8, 1]],
 };
 
+export const colors = {
+  z: '#00b259',
+  p: '#7f1561',
+}
+
 
 class Visualizations extends Component {
   state = {
@@ -269,8 +274,8 @@ class Visualizations extends Component {
         'match', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
         ['get', 'winner'],
         '=', '#fbb03b', // equal
-        'З', '#00b259',
-        'П', '#7f1561',
+        'З', colors.z,
+        'П', colors.p,
         'grey' // default
       ];
     } else if (modeColor === 'interpolate') {
@@ -278,8 +283,8 @@ class Visualizations extends Component {
         'interpolate', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-interpolate
         ['linear'],
         ['get', 'winnerInterpolate'],
-        -10000, '#7f1561',
-        +10000, '#00b259',
+        -10000, colors.p,
+        +10000, colors.z,
       ];
     }
 

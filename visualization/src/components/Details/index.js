@@ -1,4 +1,6 @@
 import React, { Component, Fragment } from 'react';
+import { colors } from '../Visualizations';
+import './index.css';
 
 class Details extends Component {
   state = {
@@ -32,6 +34,11 @@ class Details extends Component {
     const { stationKey, mode, dataEVyboryProtocolsCompact } = this.props;
     const isEVybory = mode && mode.startsWith('e-vybory---');
     const data = otherData && stationKey && otherData[stationKey];
+    const urlEVyborySearchByStation = stationKey && data && 
+      'https://e-vybory.org/feed?region=&district=' + data.okrugNumber + '&station=' + data.numberNormalized + '&error=';
+    const urlTemplateEVyboryViewProtocol = 'https://e-vybory.org/view/{photo_slug}';
+    const urlTemplateEVyboryViewTable = 'https://e-vybory.org/view-data/{table_slug}';
+
     return (
       <div>
         { stationKey && otherData === null &&
@@ -47,6 +54,11 @@ class Details extends Component {
           <>
             <div><strong>Округ:</strong> {data.okrugNumber}</div>
             <div><strong>Дiльниця:</strong> {data.number}</div>
+            <div>
+              <a href={urlEVyborySearchByStation} rel="noopener noreferrer" target="_blank">
+                Пошук даних по дiльницi на e-Vybory.org
+              </a>
+            </div>
             {
               isEVybory && dataEVyboryProtocolsCompact.data[stationKey] &&
               <>
@@ -56,12 +68,21 @@ class Details extends Component {
                     {dataEVyboryProtocolsCompact.data[stationKey].length > 1 &&
                       <div className="small">Запис {index + 1} з {dataEVyboryProtocolsCompact.data[stationKey].length}</div>
                     }
+                    <div>
+                      Вiдкрити на e-Vybory.org:
+                      {' '}
+                      <a href={urlTemplateEVyboryViewProtocol.replace('{photo_slug}', row.photo_slug)} rel="noopener noreferrer" target="_blank">протокол</a>
+                      {' | '}
+                      <a href={urlTemplateEVyboryViewTable.replace('{table_slug}', row.table_slug)} rel="noopener noreferrer" target="_blank">оцифровка</a>
+                    </div>
                     <div><strong>Арифметичнi помилки у заповненi протоколу: </strong> {row.has_errors === '1' ? 'Так' : 'Нi'}</div>
                     <div><strong>Дата протоколу:</strong> {row.photo_date.replace('T', ' ')}</div>
                     <div><strong>Дата оцифровки:</strong> {row.table_date.replace('T', ' ')}</div>
                     <div><strong>Сума голосiв за усiх кандидатiв: </strong> {row.rSum}</div>
                     <div><strong>Зеленський:</strong> {row.rZ} ({row.rppZ / 100}%)</div>
+                    <div className="votes-indicator" style={{backgroundColor: colors.z, width: (row.rppZ / 100) + '%'}}></div>
                     <div><strong>Порошенко:</strong> {row.rP} ({row.rppP / 100}%)</div>
+                    <div className="votes-indicator" style={{backgroundColor: colors.p, width: (row.rppP / 100) + '%'}}></div>
                   </Fragment>
                 ))}
               </>
