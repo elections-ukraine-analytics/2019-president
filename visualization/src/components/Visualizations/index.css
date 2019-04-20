@@ -20,7 +20,7 @@
   grid-template-rows: auto min-content;
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1300px) {
   .layout--visualization {
     grid-template-rows: auto;
     grid-template-columns: auto 600px;
