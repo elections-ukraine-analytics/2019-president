@@ -385,6 +385,10 @@ class Visualizations extends Component {
   }
 
   onMapClick = (data) => {
+    if (!data) {
+      this.setState({ stationKey: undefined, okrugNumber: undefined });
+      return;
+    }
     const { stationKey, okrugNumber } = data;
     this.setState({ stationKey, okrugNumber });
   };

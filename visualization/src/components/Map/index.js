@@ -12,7 +12,11 @@ class Map extends Component {
   state = {
     mapLoaded: false,
     renderingLayer: false,
+    selectedFeature: null,
   };
+   
+  layerHighlightPoint = null;
+  layerHighlightPolygon = null;
 
   mapFirstSymbolId = null;
 
@@ -49,7 +53,7 @@ class Map extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { mapLoaded } = this.state;
+    const { mapLoaded, selectedFeature } = this.state;
     const { dataLayers } = this.props;
     if (mapLoaded === false) {
       return;
@@ -61,6 +65,17 @@ class Map extends Component {
     if (prevProps.dataLayers !== dataLayers) {
       this.assignDataLayers(prevProps.dataLayers);
     }
+    if (prevState.selectedFeature !== selectedFeature) {
+      this.highlightSelect(selectedFeature, prevState.selectedFeature);
+    }
+  }
+
+  highlightSelect(selectedFeature, prevSelectedFeature = null) {
+    debugger;
+    if (prevSelectedFeature) {
+      this.map.setFeatureState({source: prevSelectedFeature.source, id: prevSelectedFeature.properties.stationKey}, { focus: false });
+    }
+    this.map.setFeatureState({source: selectedFeature.source, id: selectedFeature.properties.stationKey}, { focus: true });
   }
 
   async assignDataLayers(prevDataLayers) {
@@ -73,6 +88,11 @@ class Map extends Component {
           this.map.removeLayer(dataLayer.id);
           this.map.removeSource(layer.source);
         }
+      }
+      const { onClick } = this.props;
+      this.setState({ selectedFeature: null });
+      if (onClick) {
+        onClick(null);
       }
     }
 
@@ -120,9 +140,11 @@ class Map extends Component {
       return;
     }
     
-    const { properties } = features[0];
+    const feature = features[0];
     if (onClick) {
-      onClick(properties);
+      const selectedFeature = feature;
+      this.setState({ selectedFeature });
+      onClick(feature.properties);
     }
     
   }
