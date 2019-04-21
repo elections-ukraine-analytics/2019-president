@@ -34,8 +34,7 @@ class Visualizations extends Component {
     modeColor: null,
     dataLoaded: false,
     allowDetailsLoading: false,
-    stationKey: undefined,
-    okrugNumber: undefined,
+    selectedProperties: undefined,
   }
 
   constructor(props) {
@@ -237,18 +236,33 @@ class Visualizations extends Component {
       features:
         geoOkrugs.map(({ okrugNumber, geometry, psList }) => {
           const evyboryCollection = 
-            Object.keys(dataEVyboryProtocolsCompact)
+            Object.keys(dataEVyboryProtocolsCompact.data)
             .filter(key => key.startsWith(okrugNumber + ':'))
-            .map(key => dataEVyboryProtocolsCompact[key]);
+            .map(key => dataEVyboryProtocolsCompact.data[key]);
 
           const tablesCompleted = psList
-            .filter(number => evyboryCollection.some(
-              row => !row.hasErrors && row.numberNoralized === number)
+            .filter(number => 
+              evyboryCollection.some(row => 
+                row.some(r => r.has_errors === '0' && +r.ps_code === number)
+              )
             );
-          const tablesNotCompleted = psList.filter(number => !evyboryCollection.some(row => !row.hasErrors && row.numberNoralized === number));
+
+          const tablesNotCompleted = psList
+            .filter(number => 
+              !evyboryCollection.some(row => 
+                row.some(r => +r.ps_code === number)
+              )
+            );
+
+          const withErrors = psList
+            .filter(number => 
+              evyboryCollection.some(row => 
+                row.some(r => r.has_errors === '1' && +r.ps_code === number)
+              )
+            );
+
           const totalPollingStationsCount = psList.length;
-          const withErrors = evyboryCollection.filter(row => row.hasErrors);
-          const withErrorsList = withErrors.map(row => row.ps_code).join(', ');
+          const withErrorsList = withErrors.join(', ');
           const withErrorsCount = withErrors.length;
 
           return {
@@ -258,9 +272,10 @@ class Visualizations extends Component {
               okrugNumber,
               tablesCompleted,
               tablesNotCompleted,
+              totalPollingStationsCount,
               withErrorsList,
               withErrorsCount,
-              percentCompleted: tablesNotCompleted.length * 100 / totalPollingStationsCount,
+              percentCompleted: Math.trunc((tablesCompleted.length + withErrorsCount) * 10000 / totalPollingStationsCount),
             }
           }
         }),
@@ -275,11 +290,13 @@ class Visualizations extends Component {
       },
       layout: {},
       paint: {
-        'fill-opacity': 0.5,
+        'fill-opacity': 1,
         'fill-color': [
-          'case', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
-          ['>', ['get', 'tablesCount'], 0], colors.neutralBright, // if has photo
-          colors.neutralMuted // default
+          'interpolate',
+          ['linear'],
+          ['get', 'percentCompleted'],
+          0, colors.neutralMuted,
+          10000, colors.neutralBright,
         ],
         'fill-outline-color': colors.hightlight,
       },
@@ -386,15 +403,14 @@ class Visualizations extends Component {
 
   onMapClick = (data) => {
     if (!data) {
-      this.setState({ stationKey: undefined, okrugNumber: undefined });
+      this.setState({ selectedProperties: undefined });
       return;
     }
-    const { stationKey, okrugNumber } = data;
-    this.setState({ stationKey, okrugNumber });
+    this.setState({ selectedProperties: data });
   };
 
   render() {
-    const { allowDetailsLoading, stationKey, okrugNumber, mode, dataEVyboryProtocolsCompact } = this.state;
+    const { allowDetailsLoading, selectedProperties, mode, dataEVyboryProtocolsCompact } = this.state;
     const dataLayers = this.getDataLayers();
     return (
       <div className="layout--visualization">
@@ -407,8 +423,7 @@ class Visualizations extends Component {
                 <SelectModeColors onChange={this.onChangeModeColor} />
               }
               <Details 
-                stationKey={stationKey}
-                okrugNumber={okrugNumber}
+                selectedProperties={selectedProperties}
                 mode={mode}
                 dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact}
                 allowDetailsLoading={allowDetailsLoading}

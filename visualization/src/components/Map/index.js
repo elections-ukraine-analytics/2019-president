@@ -142,8 +142,8 @@ class Map extends Component {
     
     const feature = features[0];
     if (onClick) {
-      const selectedFeature = feature;
-      this.setState({ selectedFeature });
+      //const selectedFeature = feature;
+      //this.setState({ selectedFeature });
       onClick(feature.properties);
     }
     

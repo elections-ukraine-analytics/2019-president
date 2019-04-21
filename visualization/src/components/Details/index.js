@@ -31,7 +31,8 @@ class Details extends Component {
 
   render() {
     const { otherData } = this.state;
-    const { stationKey, mode, dataEVyboryProtocolsCompact } = this.props;
+    const { selectedProperties, mode, dataEVyboryProtocolsCompact } = this.props;
+    const { stationKey, okrugNumber } = selectedProperties || { stationKey: undefined, okrugNumber: undefined };
     const isEVybory = mode && mode.startsWith('e-vybory---');
     const data = otherData && stationKey && otherData[stationKey];
     const urlEVyborySearchByStation = stationKey && data && 
@@ -41,7 +42,7 @@ class Details extends Component {
 
     return (
       <div>
-        { stationKey && otherData === null &&
+        { selectedProperties && otherData === null &&
           <span className="text-muted">Завантаження даних...</span>
         }
         {
@@ -50,6 +51,17 @@ class Details extends Component {
             <div><strong>Дата завантаження даних з e-vybory.org:</strong> {dataEVyboryProtocolsCompact._source.lastUpdateDate.replace('T', ' ')}</div>
           </>
         }
+        {isEVybory && okrugNumber &&
+          <>
+            <div><strong>Округ:</strong> {okrugNumber}</div>
+            <div><strong>Всього дiльниць:</strong> {selectedProperties['totalPollingStationsCount']}</div>
+            <h3>Iнформація з сайту e-Vybory.org:</h3>
+            <div><strong>Оцифрованi дiльницi без помилок:</strong> {JSON.parse(selectedProperties['tablesCompleted']).join(', ')}</div>
+            <div><strong>Не оцифрованi дiльницi:</strong> {JSON.parse(selectedProperties['tablesNotCompleted']).join(', ')}</div>
+            <div><strong>Оцифрованi дiльницi з помилками:</strong> {selectedProperties['withErrorsList']}</div>
+          </>
+        }
+
         { stationKey && data &&
           <>
             <div><strong>Округ:</strong> {data.okrugNumber}</div>
