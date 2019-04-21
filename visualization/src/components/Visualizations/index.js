@@ -18,6 +18,10 @@ const circleOpacity = {
 export const colors = {
   z: '#00b259',
   p: '#7f1561',
+  neutralBright: '#fbb03b',
+  neutralMuted: 'grey',
+  z170neutralBright: '#94b148',
+  p170neutralBright: '#c8704b',
 }
 
 
@@ -149,7 +153,7 @@ class Visualizations extends Component {
       paint: {
         'circle-radius': circleRadius,
         'circle-opacity': circleOpacity,
-        'circle-color': '#fbb03b',
+        'circle-color': colors.neutralBright,
       },
     }];
     return result;
@@ -204,8 +208,8 @@ class Visualizations extends Component {
         'circle-opacity': circleOpacity,
         'circle-color': [
           'case', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
-          ['get', 'hasPhoto'], '#fbb03b', // if has photo
-          'grey' // default
+          ['get', 'hasPhoto'], colors.neutralBright, // if has photo
+          colors.neutralMuted // default
         ],
       },
     }];
@@ -273,10 +277,10 @@ class Visualizations extends Component {
       circleColor = [
         'match', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
         ['get', 'winner'],
-        '=', '#fbb03b', // equal
+        '=', colors.neutralBright, // equal
         'З', colors.z,
         'П', colors.p,
-        'grey' // default
+        colors.neutralMuted // default
       ];
     } else if (modeColor === 'interpolate') {
       circleColor = [
@@ -284,6 +288,9 @@ class Visualizations extends Component {
         ['linear'],
         ['get', 'winnerInterpolate'],
         -10000, colors.p,
+          -500, colors.p170neutralBright,
+             0, colors.neutralBright,
+           500, colors.z170neutralBright,
         +10000, colors.z,
       ];
     }
