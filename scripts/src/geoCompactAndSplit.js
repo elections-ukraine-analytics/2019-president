@@ -7,9 +7,6 @@ const writeFile = promisify(fs.writeFile);
 module.exports = async (drvBasePath, outputBasePath, cvk) => {
   let skipped = 0;
   const inputPS = JSON.parse(await readFile(drvBasePath + '/all-polling-stations.json'));
-  const inputOkrugs = JSON.parse(await readFile(drvBasePath + '/all.json'));
-
-  await copyFile(drvBasePath + '/all.json', outputBasePath + '/geo-okrugs.json');
 
   const geoLocationsOnly = {};
   const geoAreasOnly = {};
@@ -66,4 +63,19 @@ module.exports = async (drvBasePath, outputBasePath, cvk) => {
   await writeFile(outputBasePath + '/geo-polling-stations-special.json', JSON.stringify(geoSpecialOnly));
   await writeFile(outputBasePath + '/geo-polling-stations-other-data.json', JSON.stringify(geoOtherData));
 
+
+  const inputOkrugs = JSON.parse(await readFile(drvBasePath + '/all.json'));
+  let plainListOkrugs = [];
+  for (const region of inputOkrugs) {
+    if (!region.okrugs) {
+      continue;
+    }
+    plainListOkrugs = [...plainListOkrugs, ...region.okrugs];
+  }
+
+  plainListOkrugs = plainListOkrugs
+    .filter(row => Object.keys(geoOtherData).some(
+      key => geoOtherData[key].okrugNumber === row.okrugNumber
+    ));
+  await writeFile(outputBasePath + '/geo-okrugs.json', JSON.stringify(plainListOkrugs));
 };
