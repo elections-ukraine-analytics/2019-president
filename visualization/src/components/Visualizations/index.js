@@ -35,12 +35,14 @@ class Visualizations extends Component {
     dataLoaded: false,
     allowDetailsLoading: false,
     stationKey: undefined,
+    okrugNumber: undefined,
   }
 
   constructor(props) {
     super(props);
     this.layerCVKAllActive = memoize(this.layerCVKAllActive);
     this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
+    this.layerEVyboryHasPhotoOkrugs = memoize(this.layerEVyboryHasPhotoOkrugs);
     this.layerEVyboryTop2 = memoize(this.layerEVyboryTop2);
   }
 
@@ -93,7 +95,7 @@ class Visualizations extends Component {
   }
 
   getDataLayers() {
-    const { geoPollingStationsLocations } = this.props;
+    const { geoPollingStationsLocations, geoOkrugs } = this.props;
     const { mode, modeColor } = this.state;
 
     if (mode === null || geoPollingStationsLocations === null) {
@@ -107,6 +109,8 @@ class Visualizations extends Component {
         return this.layerCVKAllActive(geoPollingStationsLocations);
       case 'e-vybory---has-data---step-1':
         return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
+      case 'e-vybory---has-data---step-1---okrugs':
+        return this.layerEVyboryHasPhotoOkrugs(geoOkrugs, dataEVyboryProtocolsCompact);
       case 'e-vybory---top-2---step-1':
         return this.layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, false, modeColor);
       case 'e-vybory---top-2-errors---step-1':
@@ -219,6 +223,70 @@ class Visualizations extends Component {
     return result;
   }
 
+  layerEVyboryHasPhotoOkrugs(geoOkrugs, dataEVyboryProtocolsCompact) {
+    if (dataEVyboryProtocolsCompact === null) {
+      return [];
+    }
+
+    if (!geoOkrugs) {
+      return [];
+    }
+
+    const geoJson =  {
+      type: "FeatureCollection",
+      features:
+        geoOkrugs.map(({ okrugNumber, geometry, psList }) => {
+          const evyboryCollection = 
+            Object.keys(dataEVyboryProtocolsCompact)
+            .filter(key => key.startsWith(okrugNumber + ':'))
+            .map(key => dataEVyboryProtocolsCompact[key]);
+
+          const tablesCompleted = psList
+            .filter(number => evyboryCollection.some(
+              row => !row.hasErrors && row.numberNoralized === number)
+            );
+          const tablesNotCompleted = psList.filter(number => !evyboryCollection.some(row => !row.hasErrors && row.numberNoralized === number));
+          const totalPollingStationsCount = psList.length;
+          const withErrors = evyboryCollection.filter(row => row.hasErrors);
+          const withErrorsList = withErrors.map(row => row.ps_code).join(', ');
+          const withErrorsCount = withErrors.length;
+
+          return {
+            type: 'Feature',
+            geometry,
+            properties: {
+              okrugNumber,
+              tablesCompleted,
+              tablesNotCompleted,
+              withErrorsList,
+              withErrorsCount,
+              percentCompleted: tablesNotCompleted.length * 100 / totalPollingStationsCount,
+            }
+          }
+        }),
+    };
+
+    const result = [{
+      id: 'data-fill',
+      type: 'fill',
+      source: {
+        type: 'geojson',
+        data: geoJson,
+      },
+      layout: {},
+      paint: {
+        'fill-opacity': 0.5,
+        'fill-color': [
+          'case', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+          ['>', ['get', 'tablesCount'], 0], colors.neutralBright, // if has photo
+          colors.neutralMuted // default
+        ],
+        'fill-outline-color': colors.hightlight,
+      },
+    }];
+    return result;
+  }
+
   layerEVyboryTop2(geoPollingStationsLocations, dataEVyboryProtocolsCompact, withErrors, modeColor) {
     const numberWithErrors = withErrors ? '1' : '0';
 
@@ -317,12 +385,12 @@ class Visualizations extends Component {
   }
 
   onMapClick = (data) => {
-    const { stationKey } = data;
-    this.setState({ stationKey });
+    const { stationKey, okrugNumber } = data;
+    this.setState({ stationKey, okrugNumber });
   };
 
   render() {
-    const { allowDetailsLoading, stationKey, mode, dataEVyboryProtocolsCompact } = this.state;
+    const { allowDetailsLoading, stationKey, okrugNumber, mode, dataEVyboryProtocolsCompact } = this.state;
     const dataLayers = this.getDataLayers();
     return (
       <div className="layout--visualization">
@@ -334,7 +402,13 @@ class Visualizations extends Component {
               {mode && mode.includes('---top-2-') &&
                 <SelectModeColors onChange={this.onChangeModeColor} />
               }
-              <Details stationKey={stationKey} mode={mode} dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact} allowDetailsLoading={allowDetailsLoading} />
+              <Details 
+                stationKey={stationKey}
+                okrugNumber={okrugNumber}
+                mode={mode}
+                dataEVyboryProtocolsCompact={dataEVyboryProtocolsCompact}
+                allowDetailsLoading={allowDetailsLoading}
+              />
             </div>
             <div className="small">
               Джерела інформації:

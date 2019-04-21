@@ -5,12 +5,15 @@ import './App.css';
 class App extends Component {
   state = {
     geoPollingStationsLocations: null,
+    geoOkrugs: null,
   };
 
   async componentDidMount() {
     await Promise.all([
       this.loadGeo(),
+      this.loadGeoOkrugs(),
     ]);
+    
   }
 
   async loadGeo() {
@@ -19,8 +22,14 @@ class App extends Component {
     this.setState({ geoPollingStationsLocations });
   }
 
+  async loadGeoOkrugs() {
+    const response = await fetch('./static-data/geo-okrugs.json');
+    const geoOkrugs = await response.json();
+    this.setState({ geoOkrugs });
+  }
+
   render() {
-    const { geoPollingStationsLocations } = this.state;
+    const { geoPollingStationsLocations, geoOkrugs } = this.state;
     return (
       <div className="App">
         <div className="layout--title p-3">
@@ -28,6 +37,7 @@ class App extends Component {
         </div>
         <Visualizations 
           geoPollingStationsLocations={geoPollingStationsLocations}
+          geoOkrugs={geoOkrugs}
         />
       </div>
     );

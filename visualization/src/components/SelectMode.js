@@ -3,6 +3,7 @@ import React, { PureComponent } from 'react';
 export const options = [
   {value: 'cvk---all-active', label: 'ЦВК: Усi дiльницi'},
   {value: 'e-vybory---has-data---step-1', label: 'e-Vybory.org: Наявність оцифрованих протоколів (1 тур - 31.03.2019)'},
+  {value: 'e-vybory---has-data---step-1---okrugs', label: 'e-Vybory.org: По округам: Наявність оцифрованих протоколів (1 тур - 31.03.2019)'},
   {value: 'e-vybory---top-2---step-1', label: 'e-Vybory.org: Результати 2 лiдерiв оцифрованих протоколів (1 тур - 31.03.2019)'},
   {value: 'e-vybory---top-2-errors---step-1', label: 'e-Vybory.org: Результати 2 лiдерiв оцифрованих протоколів з помилками (1 тур - 31.03.2019)'},
 ];
