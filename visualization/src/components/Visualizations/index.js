@@ -22,6 +22,7 @@ export const colors = {
   neutralMuted: 'grey',
   z170neutralBright: '#94b148',
   p170neutralBright: '#c8704b',
+  hightlight: 'red',
 }
 
 
@@ -132,6 +133,7 @@ class Visualizations extends Component {
         .filter(key => geoPollingStationsLocations[key] !== null)
         .map(key => ({
           type: 'Feature',
+          id: key,
           geometry: {
             type: 'Point',
             coordinates: geoPollingStationsLocations[key],
@@ -182,6 +184,7 @@ class Visualizations extends Component {
           }
           return {
             type: 'Feature',
+            id: key,
             geometry: {
               type: 'Point',
               coordinates: geoPollingStationsLocations[key],
@@ -257,6 +260,7 @@ class Visualizations extends Component {
 
           return {
             type: 'Feature',
+            id: key,
             geometry: {
               type: 'Point',
               coordinates: geoPollingStationsLocations[key],
