@@ -90,7 +90,7 @@ class Map extends Component {
 
       this.map.on('mouseenter', dataLayer.id, this.onMouseEnter);
       this.map.on('mouseleave', dataLayer.id, this.onMouseLeave);
-      this.map.on('click', dataLayer.id, this.onClick);
+      this.map.on('click', this.onClick);
     }
   }
 
@@ -104,7 +104,18 @@ class Map extends Component {
 
   onClick = (e) => {
     const { onClick, dataLayers } = this.props;
-    const features = this.map.queryRenderedFeatures(e.point, { layers: dataLayers.map(r => r.id) });
+    const { point } = e;
+    let features;
+
+    const boundingOffsets = [0, 5, 10, 100, 300];
+    for (const offset of boundingOffsets) {
+      const boundingBox = offset === 0 ? point : [[point.x - offset, point.y - offset], [point.x + offset, point.y + offset]];
+      features = this.map.queryRenderedFeatures(boundingBox, { layers: dataLayers.map(r => r.id) });
+      if (features.length > 0) {
+        break;
+      }
+    }
+
     if (features.length === 0) {
       return;
     }
