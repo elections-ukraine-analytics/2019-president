@@ -42,8 +42,8 @@ const linkNameWithDetails = 'На виборчих дільницях';
       results.push({
         id,
         tvoNumber: $cells[0].innerText.trim(),
-        dilniciCount: $link.innerText.trim(),
-        url: $link.href,
+        dilniciCount: $link && $link.innerText.trim(),
+        url: $link && $link.href,
       });
     }
     return results;
@@ -54,6 +54,9 @@ const linkNameWithDetails = 'На виборчих дільницях';
   let results = [];
   let parallel = [];
   for (const tvo of allTVO) {
+    if (!tvo.url) {
+      continue;
+    }
     const promise = (async () => {
       const page = await browser.newPage();
       await page.goto(tvo.url);
