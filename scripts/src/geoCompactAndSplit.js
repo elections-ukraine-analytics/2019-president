@@ -73,9 +73,12 @@ module.exports = async (drvBasePath, outputBasePath, cvk) => {
     plainListOkrugs = [...plainListOkrugs, ...region.okrugs];
   }
 
-  plainListOkrugs = plainListOkrugs
-    .filter(row => Object.keys(geoOtherData).some(
-      key => geoOtherData[key].okrugNumber === row.okrugNumber
-    ));
+  plainListOkrugs = plainListOkrugs.map(row => {
+    const ps = Object.keys(geoOtherData).map(key => geoOtherData[key]).filter(rowPS => rowPS.okrugNumber === row.okrugNumber);
+    return {
+      ...row,
+      psList: ps.map(rowPS => rowPS.numberNormalized),
+    }
+  });
   await writeFile(outputBasePath + '/geo-okrugs.json', JSON.stringify(plainListOkrugs));
 };
