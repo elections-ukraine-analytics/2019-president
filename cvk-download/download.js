@@ -130,7 +130,7 @@ const linkNameWithDetails = 'На виборчих дільницях';
         }
         if (changes) {
           combined21April[key].history = [...combined21April[key].history, combined21April[key].last];
-          combined21April[key].last = [tvoNumber, numberNormalized, totalVoters, rZ, rP, protocolTimestamp, dateTimeDownload];
+          combined21April[key].last = newLastCandidate;
           debugger;
         }
       }
