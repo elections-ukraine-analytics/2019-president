@@ -154,7 +154,7 @@ const linkNameWithDetails = 'На виборчих дільницях';
     Bucket,
     Key: 'data-dynamic/' + s3filename,
     ContentType: 'application/json',
-    Expires: 'Sun, 17-Jan-2038 19:14:07 GMT',
+    Expires: new Date('2038-01-17 00:00:00'),
     Body: jsonData,
   }).promise();
 
