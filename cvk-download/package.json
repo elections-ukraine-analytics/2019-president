@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "aws-sdk": "^2.441.0",
     "csv-stringify": "^5.3.0",
+    "dotenv": "^7.0.0",
     "puppeteer": "^1.14.0"
   }
 }

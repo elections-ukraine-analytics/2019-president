@@ -1,8 +1,10 @@
+require('dotenv').config({ path: __dirname + '/../.env' });
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const promisify = require('util').promisify;
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
+const AWS = require('aws-sdk');
 
 const mainPage = 'https://www.cvk.gov.ua/pls/vp2019/wp001.html';
 const linkNameWithDetails = 'На виборчих дільницях';
@@ -136,9 +138,31 @@ const linkNameWithDetails = 'На виборчих дільницях';
       }
     }
   }
-  await writeFile(__dirname + '/data/all-21-april.json', JSON.stringify(combined21April));
+
+  const jsonData = JSON.stringify(combined21April);
+  await writeFile(__dirname + '/data/all-21-april.json', jsonData);
 
   //debugger;
 
   await browser.close();
+
+  const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+  const Bucket = 'eua-evybory';
+  const s3filename = 'cvk-' + dateLabel + '.json';
+
+  await s3.putObject({
+    Bucket,
+    Key: s3filename,
+    ContentType: 'application/json',
+    Body: jsonData,
+  }).promise();
+
+  await s3.putObject({
+    Bucket,
+    Key: 'manifests/cvk.json',
+    ContentType: 'application/json',
+    Body: JSON.stringify({ name: s3filename }),
+  }).promise();
+
+
 })();
