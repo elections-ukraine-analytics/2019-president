@@ -298,7 +298,7 @@ class Visualizations extends Component {
           0, colors.neutralMuted,
           10000, colors.neutralBright,
         ],
-        'fill-outline-color': colors.hightlight,
+        'fill-outline-color': ['rgba', 255, 255, 255, 0.2],
       },
     }];
     return result;
