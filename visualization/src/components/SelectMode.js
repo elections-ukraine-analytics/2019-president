@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 
 export const options = [
   {value: 'cvk---all-active', label: 'ЦВК: Усi дiльницi'},
+  {value: 'cvk---top-2---step-2', label: 'ЦВК: Результи 2 лiдерiв (2 тур - 21.04.2019)'},
   {value: 'e-vybory---has-data---step-1', label: 'e-Vybory.org: Наявність оцифрованих протоколів (1 тур - 31.03.2019)'},
   {value: 'e-vybory---has-data---step-1---okrugs', label: 'e-Vybory.org: По округам: Наявність оцифрованих протоколів (1 тур - 31.03.2019)'},
   {value: 'e-vybory---top-2---step-1', label: 'e-Vybory.org: Результати 2 лiдерiв оцифрованих протоколів (1 тур - 31.03.2019)'},
