@@ -94,7 +94,7 @@ const linkNameWithDetails = 'На виборчих дільницях';
   results = [...results, ...doneList];
   console.log('Done ' + results.length + ' of ' + allTVO.length);
 
-  console.log(results);
+  //console.log(results);
   const dateTimeDownload = new Date().toISOString();
   const dateLabel = dateTimeDownload.replace(/:/g,'-');
 
