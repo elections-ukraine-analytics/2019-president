@@ -2,11 +2,13 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const promisify = require('util').promisify;
 const writeFile = promisify(fs.writeFile);
+const readFile = promisify(fs.readFile);
 
 const mainPage = 'https://www.cvk.gov.ua/pls/vp2019/wp001.html';
 const linkNameWithDetails = 'На виборчих дільницях';
 
 (async () => {
+
   const browser = await puppeteer.launch({
     headless: true,
     devtools: true,
@@ -91,9 +93,50 @@ const linkNameWithDetails = 'На виборчих дільницях';
   console.log('Done ' + results.length + ' of ' + allTVO.length);
 
   console.log(results);
-  const dateLabel = new Date().toISOString().replace(/:/g,'-');
+  const dateTimeDownload = new Date().toISOString();
+  const dateLabel = dateTimeDownload.replace(/:/g,'-');
 
   await writeFile(__dirname + '/data/all-' + dateLabel + '.json', JSON.stringify(results));
+
+  //const dateTimeDownload = '2019-04-22T12:52:55.921Z';
+  //const dateTimeDownload = '2019-04-22T13:02:41.544Z';
+  //const dateLabel = dateTimeDownload.replace(/:/g,'-');
+  //const results = JSON.parse(await readFile(__dirname + '/data/all-' + dateLabel + '.json'));
+
+  let combined21April;
+  try {
+    combined21April = JSON.parse(await readFile(__dirname + '/data/all-21-april.json'));
+  } catch (e) {
+    combined21April = {};
+  }
+  for (const { tvo:{ tvoNumber }, matrix } of results) {
+    for (const row of matrix) {
+      const numberNormalized = parseInt(row[0], 10);
+      const totalVoters = parseInt(row[9], 10);
+      const rZ = parseInt(row[11], 10);
+      const rP = parseInt(row[12], 10);
+      const protocolTimestamp = row[13];
+      const key = tvoNumber + ':' + numberNormalized;
+      const newLastCandidate = [tvoNumber, numberNormalized, totalVoters, rZ, rP, protocolTimestamp, dateTimeDownload];
+      if (!combined21April[key]) {
+        combined21April[key] = {last: newLastCandidate, history: []};
+      } else {
+        let changes = false;
+        for (let i = 0; i < newLastCandidate.length - 1; i++) {
+          if (newLastCandidate[i] !== combined21April[key].last[i]) {
+            changes = true;
+            break;
+          }
+        }
+        if (changes) {
+          combined21April[key].history = [...combined21April[key].history, combined21April[key].last];
+          combined21April[key].last = [tvoNumber, numberNormalized, totalVoters, rZ, rP, protocolTimestamp, dateTimeDownload];
+          debugger;
+        }
+      }
+    }
+  }
+  await writeFile(__dirname + '/data/all-21-april.json', JSON.stringify(combined21April));
 
   //debugger;
 
