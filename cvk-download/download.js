@@ -152,7 +152,7 @@ const linkNameWithDetails = 'На виборчих дільницях';
 
   await s3.putObject({
     Bucket,
-    Key: s3filename,
+    Key: 'data-dynamic/' + s3filename,
     ContentType: 'application/json',
     Expires: 'Sun, 17-Jan-2038 19:14:07 GMT',
     Body: jsonData,
