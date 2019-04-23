@@ -100,8 +100,6 @@ const linkNameWithDetails = 'На виборчих дільницях';
   const dateTimeDownload = new Date().toISOString();
   const dateLabel = dateTimeDownload.replace(/:/g,'-');
 
-  await writeFile(__dirname + '/data/all-' + dateLabel + '.json', JSON.stringify(results));
-
   //const dateTimeDownload = '2019-04-22T12:52:55.921Z';
   //const dateTimeDownload = '2019-04-22T13:02:41.544Z';
   //const dateLabel = dateTimeDownload.replace(/:/g,'-');
@@ -149,6 +147,8 @@ const linkNameWithDetails = 'На виборчих дільницях';
     console.log('No updates');
     return;
   }
+
+  await writeFile(__dirname + '/data/all-' + dateLabel + '.json', JSON.stringify(results));
 
   const jsonData = JSON.stringify(combined21April);
   await writeFile(__dirname + '/data/all-21-april.json', jsonData);
