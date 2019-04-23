@@ -87,7 +87,9 @@ const linkNameWithDetails = 'На виборчих дільницях';
       const done = await Promise.race(parallel.map(({ promise }) => promise));
       parallel = parallel.filter(r => r.id !== done.tvo.id);
       results = [...results, done];
-      console.log('Done ' + results.length + ' of ' + allTVO.length);
+      if (results.length % 50 === 0) {
+        console.log('Done ' + results.length + ' of ' + allTVO.length);
+      }
     }
   }
   const doneList = await Promise.all(parallel.map(({ promise }) => promise));
@@ -106,6 +108,7 @@ const linkNameWithDetails = 'На виборчих дільницях';
   //const results = JSON.parse(await readFile(__dirname + '/data/all-' + dateLabel + '.json'));
 
   let combined21April;
+  let hasAnyUpdates = false;
   try {
     combined21April = JSON.parse(await readFile(__dirname + '/data/all-21-april.json'));
   } catch (e) {
@@ -122,6 +125,7 @@ const linkNameWithDetails = 'На виборчих дільницях';
       const newLastCandidate = [tvoNumber, numberNormalized, totalVoters, rZ, rP, protocolTimestamp, dateTimeDownload];
       if (!combined21April[key]) {
         combined21April[key] = {last: newLastCandidate, history: []};
+        hasAnyUpdates = true;
       } else {
         let changes = false;
         for (let i = 0; i < newLastCandidate.length - 1; i++) {
@@ -131,20 +135,23 @@ const linkNameWithDetails = 'На виборчих дільницях';
           }
         }
         if (changes) {
+          hasAnyUpdates = true;
           combined21April[key].history = [...combined21April[key].history, combined21April[key].last];
           combined21April[key].last = newLastCandidate;
-          debugger;
         }
       }
     }
   }
 
+  await browser.close();
+
+  if (!hasAnyUpdates) {
+    console.log('No updates');
+    return;
+  }
+
   const jsonData = JSON.stringify(combined21April);
   await writeFile(__dirname + '/data/all-21-april.json', jsonData);
-
-  //debugger;
-
-  await browser.close();
 
   const s3 = new AWS.S3({apiVersion: '2006-03-01'});
   const Bucket = 'eua-evybory';
@@ -165,5 +172,6 @@ const linkNameWithDetails = 'На виборчих дільницях';
     Body: JSON.stringify({ name: s3filename }),
   }).promise();
 
+  console.log('Has updates. Upload completed');
 
 })();
