@@ -30,6 +30,7 @@ class Visualizations extends Component {
   state = {
     dataEVyboryProtocolsUploaded: null,
     dataEVyboryProtocolsCompact: null,
+    dataCVKStep2: null,
     mode: null,
     modeColor: null,
     dataLoaded: false,
@@ -43,6 +44,8 @@ class Visualizations extends Component {
     this.layerEVyboryHasPhoto = memoize(this.layerEVyboryHasPhoto);
     this.layerEVyboryHasPhotoOkrugs = memoize(this.layerEVyboryHasPhotoOkrugs);
     this.layerEVyboryTop2 = memoize(this.layerEVyboryTop2);
+    this.layerCVKTop2Step2 = memoize(this.layerCVKTop2Step2);
+    this.loadCVKStep2 = memoize(this.loadCVKStep2);
   }
 
   async componentDidMount() {
@@ -50,6 +53,19 @@ class Visualizations extends Component {
       this.loadProtocolsCompactStep1(),
       //this.loadProtocolsUploadingStep1(),
     ]);
+  }
+
+  async loadCVKManifest() {
+    const response = await fetch('/manifests/cvk.json');
+    const data = await response.json();
+    return data;
+  }
+
+  async loadCVKStep2() {
+    const { name } = await this.loadCVKManifest();
+    const response = await fetch('/data-dynamic/' + name);
+    const dataCVKStep2 = await response.json();
+    this.setState({ dataCVKStep2 });
   }
 
   async loadProtocolsUploadingStep1() {
@@ -101,11 +117,13 @@ class Visualizations extends Component {
       return [];
     }
 
-    const { dataEVyboryProtocolsCompact } = this.state;
+    const { dataEVyboryProtocolsCompact, dataCVKStep2 } = this.state;
 
     switch (mode) {
       case 'cvk---all-active':
         return this.layerCVKAllActive(geoPollingStationsLocations);
+      case 'cvk---top-2---step-2':
+        return this.layerCVKTop2Step2(geoPollingStationsLocations, dataCVKStep2, modeColor);
       case 'e-vybory---has-data---step-1':
         return this.layerEVyboryHasPhoto(geoPollingStationsLocations, dataEVyboryProtocolsCompact);
       case 'e-vybory---has-data---step-1---okrugs':
@@ -298,7 +316,7 @@ class Visualizations extends Component {
           0, colors.neutralMuted,
           10000, colors.neutralBright,
         ],
-        'fill-outline-color': colors.hightlight,
+        'fill-outline-color': ['rgba', 255, 255, 255, 0.2],
       },
     }];
     return result;
@@ -381,6 +399,114 @@ class Visualizations extends Component {
              0, colors.neutralBright,
            500, colors.z170neutralBright,
         +10000, colors.z,
+      ];
+    }
+
+    const result = [{
+      id: 'data-circle',
+      type: 'circle',
+      source: {
+        type: 'geojson',
+        data: geoJson,
+      },
+      layout: {},
+      paint: {
+        'circle-radius': circleRadius,
+        'circle-opacity': circleOpacity,
+        'circle-color': circleColor,
+      },
+    }];
+    return result;
+  }
+
+  layerCVKTop2Step2(geoPollingStationsLocations, dataCVKStep2, modeColor) {
+    if (dataCVKStep2 === null) {
+      this.loadCVKStep2();
+      return [];
+    }    
+
+    if (modeColor === null) {
+      return [];
+    }
+    
+    if (!geoPollingStationsLocations) {
+      return [];
+    }
+
+    const geoJson =  {
+      type: "FeatureCollection",
+      features:
+        Object.keys(geoPollingStationsLocations)
+        .filter(key => geoPollingStationsLocations[key] !== null)
+        .map(key => {
+          const data = dataCVKStep2[key];
+          if (!data) {
+            return {
+              type: 'Feature',
+              id: key,
+              geometry: {
+                type: 'Point',
+                coordinates: geoPollingStationsLocations[key],
+              },
+              properties: {
+                noData: true,
+                stationKey: key,
+              }
+            }
+          }
+          const [ , , totalVoters, rZ, rP ] = data.last;
+          const rppZ = rZ * 10000 / totalVoters;
+          const rppP = rP * 10000 / totalVoters;
+          const hasChanges = data.history.length > 0;
+          return {
+            type: 'Feature',
+            id: key,
+            geometry: {
+              type: 'Point',
+              coordinates: geoPollingStationsLocations[key],
+            },
+            properties: {
+              noData: false,
+              winner: rZ === rP ? '=' : (rZ > rP ? 'З' : 'П'),
+              winnerInterpolate: rppZ - rppP,
+              hasChanges,
+              stationKey: key,
+            }
+          }
+        }),
+    };
+
+    let circleColor;
+
+    if (modeColor === '2-colors') {
+      circleColor = [
+        'case',
+        ['get', 'noData'],
+        colors.neutralMuted,
+        [
+          'match', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
+          ['get', 'winner'],
+          '=', colors.neutralBright, // equal
+          'З', colors.z,
+          'П', colors.p,
+          colors.neutralMuted // default
+        ],
+      ];
+    } else if (modeColor === 'interpolate') {
+      circleColor = [
+        'case',
+        ['get', 'noData'],
+        colors.neutralMuted,
+        [
+          'interpolate', // https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-interpolate
+          ['linear'],
+          ['get', 'winnerInterpolate'],
+          -10000, colors.p,
+            -500, colors.p170neutralBright,
+              0, colors.neutralBright,
+            500, colors.z170neutralBright,
+          +10000, colors.z,
+        ],
       ];
     }
 

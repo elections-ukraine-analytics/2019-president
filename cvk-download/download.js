@@ -1,12 +1,16 @@
+require('dotenv').config({ path: __dirname + '/../.env' });
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const promisify = require('util').promisify;
 const writeFile = promisify(fs.writeFile);
+const readFile = promisify(fs.readFile);
+const AWS = require('aws-sdk');
 
 const mainPage = 'https://www.cvk.gov.ua/pls/vp2019/wp001.html';
 const linkNameWithDetails = 'На виборчих дільницях';
 
 (async () => {
+
   const browser = await puppeteer.launch({
     headless: true,
     devtools: true,
@@ -90,12 +94,76 @@ const linkNameWithDetails = 'На виборчих дільницях';
   results = [...results, ...doneList];
   console.log('Done ' + results.length + ' of ' + allTVO.length);
 
-  console.log(results);
-  const dateLabel = new Date().toISOString().replace(/:/g,'-');
+  //console.log(results);
+  const dateTimeDownload = new Date().toISOString();
+  const dateLabel = dateTimeDownload.replace(/:/g,'-');
 
   await writeFile(__dirname + '/data/all-' + dateLabel + '.json', JSON.stringify(results));
+
+  //const dateTimeDownload = '2019-04-22T12:52:55.921Z';
+  //const dateTimeDownload = '2019-04-22T13:02:41.544Z';
+  //const dateLabel = dateTimeDownload.replace(/:/g,'-');
+  //const results = JSON.parse(await readFile(__dirname + '/data/all-' + dateLabel + '.json'));
+
+  let combined21April;
+  try {
+    combined21April = JSON.parse(await readFile(__dirname + '/data/all-21-april.json'));
+  } catch (e) {
+    combined21April = {};
+  }
+  for (const { tvo:{ tvoNumber }, matrix } of results) {
+    for (const row of matrix) {
+      const numberNormalized = parseInt(row[0], 10);
+      const totalVoters = parseInt(row[9], 10);
+      const rZ = parseInt(row[11], 10);
+      const rP = parseInt(row[12], 10);
+      const protocolTimestamp = row[13];
+      const key = tvoNumber + ':' + numberNormalized;
+      const newLastCandidate = [tvoNumber, numberNormalized, totalVoters, rZ, rP, protocolTimestamp, dateTimeDownload];
+      if (!combined21April[key]) {
+        combined21April[key] = {last: newLastCandidate, history: []};
+      } else {
+        let changes = false;
+        for (let i = 0; i < newLastCandidate.length - 1; i++) {
+          if (newLastCandidate[i] !== combined21April[key].last[i]) {
+            changes = true;
+            break;
+          }
+        }
+        if (changes) {
+          combined21April[key].history = [...combined21April[key].history, combined21April[key].last];
+          combined21April[key].last = newLastCandidate;
+          debugger;
+        }
+      }
+    }
+  }
+
+  const jsonData = JSON.stringify(combined21April);
+  await writeFile(__dirname + '/data/all-21-april.json', jsonData);
 
   //debugger;
 
   await browser.close();
+
+  const s3 = new AWS.S3({apiVersion: '2006-03-01'});
+  const Bucket = 'eua-evybory';
+  const s3filename = 'cvk-' + dateLabel + '.json';
+
+  await s3.putObject({
+    Bucket,
+    Key: 'data-dynamic/' + s3filename,
+    ContentType: 'application/json',
+    Expires: new Date('2038-01-17 00:00:00'),
+    Body: jsonData,
+  }).promise();
+
+  await s3.putObject({
+    Bucket,
+    Key: 'manifests/cvk.json',
+    ContentType: 'application/json',
+    Body: JSON.stringify({ name: s3filename }),
+  }).promise();
+
+
 })();
